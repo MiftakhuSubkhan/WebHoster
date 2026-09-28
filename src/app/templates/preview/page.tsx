@@ -95,7 +95,7 @@ function PreviewContent() {
   };
 
   return (
-    <div className="min-h-screen bg-[#07090E] text-slate-100 flex flex-col overflow-hidden select-none">
+    <div className="fixed inset-0 z-50 w-screen h-screen flex flex-col bg-[#07090E] text-slate-100 overflow-hidden select-none">
       {/* 1. TOP BAR NAVIGATOR (Collapsible) */}
       {isTopBarVisible ? (
         <header className="h-14 bg-[#0B0F17]/95 border-b border-[#1B2433] px-3 sm:px-6 flex items-center justify-between z-30 shrink-0 backdrop-blur-md transition-all duration-300">
@@ -217,9 +217,9 @@ function PreviewContent() {
       )}
 
       {/* 2. MAIN IFRAME DEMO CONTAINER */}
-      <main className="flex-1 relative bg-[#04060A] flex items-center justify-center overflow-auto p-0 sm:p-2">
+      <main className="flex-1 w-full relative bg-[#04060A] flex flex-col items-center justify-center overflow-hidden p-0">
         {!isIframeLoaded && (
-          <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-[#07090E]/90 backdrop-blur-sm pointer-events-none">
+          <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-[#07090E] pointer-events-none">
             <div className="w-10 h-10 border-3 border-[#00E599]/20 border-t-[#00E599] rounded-full animate-spin mb-3" />
             <p className="text-xs font-bold text-white tracking-wide">Memuat Live Demo Website...</p>
             <p className="text-[11px] text-[#64748B] mt-1 font-mono">{cleanDemoUrl}</p>
@@ -227,12 +227,12 @@ function PreviewContent() {
         )}
 
         <div
-          className={`transition-all duration-300 h-full flex flex-col justify-center items-center ${
+          className={`transition-all duration-300 w-full flex-1 flex flex-col items-center justify-center ${
             deviceMode === "desktop"
-              ? "w-full"
+              ? "h-full w-full p-0 m-0"
               : deviceMode === "tablet"
-              ? "w-[768px] max-w-full h-[90vh] rounded-3xl border-4 border-[#1B2433] shadow-[0_0_50px_rgba(0,0,0,0.8)] overflow-hidden bg-[#0F141C]"
-              : "w-[375px] max-w-full h-[86vh] rounded-[40px] border-8 border-[#1B2433] shadow-[0_0_50px_rgba(0,0,0,0.9)] overflow-hidden bg-[#0F141C]"
+              ? "w-[768px] max-w-[95vw] h-[90vh] my-auto rounded-3xl border-4 border-[#1B2433] shadow-[0_0_50px_rgba(0,0,0,0.8)] overflow-hidden bg-[#0F141C]"
+              : "w-[375px] max-w-[92vw] h-[86vh] my-auto rounded-[40px] border-8 border-[#1B2433] shadow-[0_0_50px_rgba(0,0,0,0.9)] overflow-hidden bg-[#0F141C]"
           }`}
         >
           <iframe
@@ -240,8 +240,9 @@ function PreviewContent() {
             src={cleanDemoUrl}
             title={`Live Demo - ${templateName}`}
             onLoad={() => setIsIframeLoaded(true)}
-            className="w-full h-full border-none bg-white block"
-            sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
+            className="w-full h-full border-none bg-white block flex-1"
+            sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals"
+            allow="fullscreen"
           />
         </div>
       </main>
