@@ -185,13 +185,13 @@ function LivePreviewInner() {
               Cocok untuk bisnis Anda? Siap pakai termasuk <strong className="text-white">Gratis Domain</strong> + <strong className="text-white">Cloud Hosting NVMe</strong> &amp; panduan edit.
             </p>
 
-            {/* Primary Action Button: Pilih Paket Website */}
+            {/* Primary Action Button: Order Sekarang */}
             <button
               type="button"
               onClick={handleSelectPackage}
               className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-[#00E599] hover:bg-[#00C882] text-[#090C10] font-black text-xs transition shadow-[0_0_20px_rgba(0,229,153,0.35)] active:scale-[0.98]"
             >
-              <span>Pilih Paket Harga Website</span>
+              <span>Order Sekarang</span>
               <ArrowRightIcon className="w-4 h-4 text-[#090C10]" />
             </button>
 
@@ -229,7 +229,7 @@ function LivePreviewInner() {
               className="text-xs font-bold text-white hover:text-[#00E599] transition flex items-center gap-1.5 pr-1"
             >
               <span className="truncate max-w-[120px]">{title}</span>
-              <span className="text-[#00E599] font-black">• Pilih Paket →</span>
+              <span className="text-[#00E599] font-black">• Order Sekarang →</span>
             </button>
             <button
               type="button"
