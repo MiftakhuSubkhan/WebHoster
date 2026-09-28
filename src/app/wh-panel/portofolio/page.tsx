@@ -38,6 +38,7 @@ import {
   matchProjectCategory,
   getCategorySlugFromLabel,
   PORTFOLIO_CATEGORIES,
+  syncPortfoliosWithSupabase,
 } from "@/lib/portfolio";
 
 const CATEGORIES = [
@@ -94,6 +95,7 @@ export default function PortfolioManagementPage() {
     };
 
     sync();
+    syncPortfoliosWithSupabase().then(() => sync()).catch(() => {});
 
     if (typeof window !== "undefined") {
       window.addEventListener("wh:portfolio_updated", sync);

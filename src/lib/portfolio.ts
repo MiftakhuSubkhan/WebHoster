@@ -207,32 +207,44 @@ export function savePortfolioProjects(projects: PortfolioProjectItem[]): void {
 
     // Sync ke Supabase secara background jika terhubung
     if (isSupabaseConfigured() && supabase) {
-      const records = projects.map((p) => ({
-        id: p.id,
-        title: p.title,
-        category: p.category,
-        category_label: p.categoryLabel,
-        industry: p.industry,
-        template_basis: p.templateBasis,
-        description: p.description,
-        gradient_bg: p.gradientBg,
-        icon_bg: p.iconBg,
-        tech: p.tech,
-        features: p.features,
-        live_url_mock: p.liveUrlMock,
-        highlights: p.highlights,
-        image: p.image || null,
-        status: p.status,
-      }));
-
       (async () => {
         try {
-          const { error } = await supabase
-            .from("portfolios")
-            .upsert(records, { onConflict: "id" });
-          if (error) console.warn("[Supabase] Portfolio upsert error:", error.message);
+          const currentIds = new Set(projects.map((p) => p.id));
+
+          // 1. Hapus item di Supabase yang sudah tidak ada di list
+          const { data: existing } = await supabase.from("portfolios").select("id");
+          if (existing && existing.length > 0) {
+            const toDelete = existing
+              .filter((e: any) => !currentIds.has(e.id))
+              .map((e: any) => e.id);
+            if (toDelete.length > 0) {
+              await supabase.from("portfolios").delete().in("id", toDelete);
+            }
+          }
+
+          // 2. Upsert item yang aktif
+          if (projects.length > 0) {
+            const records = projects.map((p) => ({
+              id: p.id,
+              title: p.title,
+              category: p.category,
+              category_label: p.categoryLabel,
+              industry: p.industry,
+              template_basis: p.templateBasis,
+              description: p.description,
+              gradient_bg: p.gradientBg,
+              icon_bg: p.iconBg,
+              tech: p.tech,
+              features: p.features,
+              live_url_mock: p.liveUrlMock,
+              highlights: p.highlights,
+              image: p.image || null,
+              status: p.status,
+            }));
+            await supabase.from("portfolios").upsert(records, { onConflict: "id" });
+          }
         } catch (err) {
-          console.warn("[Supabase] Connection error:", err);
+          console.warn("[Supabase] Portfolio sync error:", err);
         }
       })();
     }
@@ -255,7 +267,7 @@ export async function syncPortfoliosWithSupabase(): Promise<PortfolioProjectItem
       .select("*")
       .order("created_at", { ascending: false });
 
-    if (error || !data || data.length === 0) {
+    if (error || !data) {
       return getPortfolioProjects();
     }
 
@@ -290,6 +302,7 @@ export async function syncPortfoliosWithSupabase(): Promise<PortfolioProjectItem
     return getPortfolioProjects();
   }
 }
+
 
 
 export function resetPortfolioToDefault(): PortfolioProjectItem[] {
