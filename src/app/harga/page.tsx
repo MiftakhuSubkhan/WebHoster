@@ -630,8 +630,15 @@ export default function LayananTemplateCatalogPage() {
 
   const handleOpenDemo = (template: TemplateItem) => {
     recordTemplateView(template.id);
-    const targetUrl = `/templates/preview?id=${encodeURIComponent(template.id)}&name=${encodeURIComponent(template.title)}&url=${encodeURIComponent(template.demoUrl || "")}&cat=${encodeURIComponent(template.categoryLabel || "")}`;
-    window.open(targetUrl, "_blank", "noopener,noreferrer");
+    const rawUrl = template.demoUrl?.trim();
+    if (rawUrl) {
+      const finalUrl = rawUrl.startsWith("http://") || rawUrl.startsWith("https://")
+        ? rawUrl
+        : `https://${rawUrl}`;
+      window.open(finalUrl, "_blank", "noopener,noreferrer");
+    } else {
+      setSelectedDemo(template);
+    }
   };
 
   const handleSelectTemplate = (template: TemplateItem) => {
