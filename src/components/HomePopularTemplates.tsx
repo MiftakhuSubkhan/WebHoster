@@ -16,6 +16,7 @@ export interface PopularTemplateItem {
   features: string[];
   imageUrl?: string;
   isPopular?: boolean;
+  demoUrl?: string;
 }
 
 export default function HomePopularTemplates() {
@@ -52,6 +53,7 @@ export default function HomePopularTemplates() {
             features,
             isPopular: idx === 1 || t.badge?.toLowerCase().includes("best") || t.badge?.toLowerCase().includes("populer"),
             imageUrl: t.imageUrl,
+            demoUrl: t.demoUrl,
           };
         });
 
@@ -171,14 +173,27 @@ export default function HomePopularTemplates() {
                 <span>Pilih Desain &amp; Paket</span>
                 <ArrowRight className="w-3.5 h-3.5 group-hover/btn:translate-x-0.5 transition-transform" />
               </Link>
-              <Link
-                href={`/harga?template=${encodeURIComponent(tpl.name)}`}
-                onClick={() => recordTemplateView(tpl.id)}
-                className="w-full bg-[#090C10] hover:bg-[#151D2A] text-slate-400 hover:text-white border border-[#1B2433] text-[11px] font-medium py-2 rounded-lg transition flex items-center justify-center gap-1.5"
-              >
-                <Eye className="w-3.5 h-3.5 text-[#00E599]" />
-                <span>Lihat Demo &amp; Spek Lengkap</span>
-              </Link>
+              {tpl.demoUrl ? (
+                <a
+                  href={tpl.demoUrl.startsWith("http") ? tpl.demoUrl : `https://${tpl.demoUrl}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() => recordTemplateView(tpl.id)}
+                  className="w-full bg-[#090C10] hover:bg-[#151D2A] text-slate-300 hover:text-[#00E599] border border-[#1B2433] hover:border-[#00E599]/40 text-[11px] font-medium py-2 rounded-lg transition flex items-center justify-center gap-1.5 cursor-pointer"
+                >
+                  <Eye className="w-3.5 h-3.5 text-[#00E599]" />
+                  <span>Buka Live Demo ↗</span>
+                </a>
+              ) : (
+                <Link
+                  href={`/harga?template=${encodeURIComponent(tpl.name)}`}
+                  onClick={() => recordTemplateView(tpl.id)}
+                  className="w-full bg-[#090C10] hover:bg-[#151D2A] text-slate-400 hover:text-white border border-[#1B2433] text-[11px] font-medium py-2 rounded-lg transition flex items-center justify-center gap-1.5"
+                >
+                  <Eye className="w-3.5 h-3.5 text-[#00E599]" />
+                  <span>Lihat Demo &amp; Spek Lengkap</span>
+                </Link>
+              )}
             </div>
           </div>
         );

@@ -24,6 +24,7 @@ import {
   ArrowRight,
   ShieldCheck,
   Search,
+  ExternalLink,
 } from "lucide-react";
 import { recordTemplateView } from "@/lib/analytics";
 import { getTemplates, syncTemplatesWithSupabase } from "@/lib/templates";
@@ -629,7 +630,15 @@ export default function LayananTemplateCatalogPage() {
 
   const handleOpenDemo = (template: TemplateItem) => {
     recordTemplateView(template.id);
-    setSelectedDemo(template);
+    const rawUrl = template.demoUrl?.trim();
+    if (rawUrl) {
+      const finalUrl = rawUrl.startsWith("http://") || rawUrl.startsWith("https://")
+        ? rawUrl
+        : `https://${rawUrl}`;
+      window.open(finalUrl, "_blank", "noopener,noreferrer");
+    } else {
+      setSelectedDemo(template);
+    }
   };
 
   const handleSelectTemplate = (template: TemplateItem) => {
@@ -903,14 +912,19 @@ export default function LayananTemplateCatalogPage() {
                         }`}
                     >
                       <div>
-                        <div className="bg-[#121824] px-4 py-2.5 border-b border-[#1B2433] flex items-center justify-between">
+                        <div
+                          onClick={() => handleOpenDemo(t)}
+                          className="bg-[#121824] hover:bg-[#162030] px-4 py-2.5 border-b border-[#1B2433] flex items-center justify-between cursor-pointer transition group/bar"
+                          title="Buka Live Demo"
+                        >
                           <div className="flex items-center gap-1.5">
                             <div className="w-2.5 h-2.5 rounded-full bg-[#FF5F56]" />
                             <div className="w-2.5 h-2.5 rounded-full bg-[#FFBD2E]" />
                             <div className="w-2.5 h-2.5 rounded-full bg-[#27C93F]" />
                           </div>
-                          <span className="text-[10px] text-[#64748B] font-mono truncate max-w-[170px]">
-                            demo.webhoster.co.id/{t.slug}
+                          <span className="text-[10px] text-[#64748B] group-hover/bar:text-[#00E599] font-mono truncate max-w-[170px] transition-colors flex items-center gap-1">
+                            <span>{t.demoUrl ? t.demoUrl.replace(/^https?:\/\//, '') : `demo.webhoster.co.id/${t.slug}`}</span>
+                            <ExternalLink className="w-2.5 h-2.5 opacity-0 group-hover/bar:opacity-100 transition-opacity" />
                           </span>
                           <span className="text-[10px] text-[#00E599] font-mono uppercase font-bold flex items-center gap-1">
                             <span className="w-1.5 h-1.5 rounded-full bg-[#00E599] animate-pulse" />
@@ -1040,10 +1054,12 @@ export default function LayananTemplateCatalogPage() {
 
                       <div className="p-6 pt-0 grid grid-cols-2 gap-2.5">
                         <button
+                          type="button"
                           onClick={() => handleOpenDemo(t)}
-                          className="bg-[#121824] hover:bg-[#1B2433] text-white border border-[#1B2433] hover:border-[#00E599]/40 font-bold text-xs py-3 rounded-xl transition flex items-center justify-center gap-1.5 cursor-pointer"
+                          className="bg-[#121824] hover:bg-[#00E599] text-white hover:text-[#090C10] border border-[#1B2433] hover:border-[#00E599] font-bold text-xs py-3 rounded-xl transition-all duration-200 flex items-center justify-center gap-1.5 cursor-pointer shadow-sm group/btn"
+                          title="Buka Live Demo Website"
                         >
-                          <Eye className="w-3.5 h-3.5 text-[#00E599]" />
+                          <ExternalLink className="w-3.5 h-3.5 text-[#00E599] group-hover/btn:text-[#090C10] transition-colors" />
                           <span>Live Demo</span>
                         </button>
                         <button
@@ -1392,13 +1408,46 @@ export default function LayananTemplateCatalogPage() {
                       {selectedDemo.categoryLabel}
                     </span>
                   </h4>
-                  <p className="text-[11px] text-[#64748B] font-mono">
-                    demo.webhoster.co.id/{selectedDemo.slug}
-                  </p>
+                  <div className="flex items-center gap-2 mt-0.5">
+                    <p className="text-[11px] text-[#64748B] font-mono">
+                      {selectedDemo.demoUrl ? selectedDemo.demoUrl.replace(/^https?:\/\//, '') : `demo.webhoster.co.id/${selectedDemo.slug}`}
+                    </p>
+                    {selectedDemo.demoUrl && (
+                      <a
+                        href={selectedDemo.demoUrl.startsWith('http') ? selectedDemo.demoUrl : `https://${selectedDemo.demoUrl}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-[10px] text-[#00E599] hover:underline flex items-center gap-0.5"
+                      >
+                        <span>Buka Tab Baru</span>
+                        <ExternalLink className="w-2.5 h-2.5" />
+                      </a>
+                    )}
+                  </div>
                 </div>
               </div>
 
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 sm:gap-3">
+                {selectedDemo.demoUrl && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const rawUrl = selectedDemo.demoUrl?.trim();
+                      if (rawUrl) {
+                        const finalUrl = rawUrl.startsWith("http://") || rawUrl.startsWith("https://")
+                          ? rawUrl
+                          : `https://${rawUrl}`;
+                        window.open(finalUrl, "_blank", "noopener,noreferrer");
+                      }
+                    }}
+                    className="hidden sm:flex bg-[#00E599]/15 hover:bg-[#00E599] text-[#00E599] hover:text-[#090C10] border border-[#00E599]/30 text-xs font-bold px-3 py-1.5 rounded-xl transition items-center gap-1.5 cursor-pointer"
+                    title="Buka Website di Tab Baru"
+                  >
+                    <ExternalLink className="w-3.5 h-3.5" />
+                    <span>Buka Website Asli</span>
+                  </button>
+                )}
+
                 <div className="hidden sm:flex items-center bg-[#090C10] p-1 rounded-xl border border-[#1B2433]">
                   <button
                     onClick={() => setDemoViewMode("desktop")}
