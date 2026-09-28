@@ -175,7 +175,7 @@ export default function HomePopularTemplates() {
               </Link>
               {tpl.demoUrl ? (
                 <a
-                  href={tpl.demoUrl.startsWith("http") ? tpl.demoUrl : `https://${tpl.demoUrl}`}
+                  href={`/templates/preview?id=${encodeURIComponent(tpl.id)}&name=${encodeURIComponent(tpl.name)}&url=${encodeURIComponent(tpl.demoUrl || "")}&cat=${encodeURIComponent(tpl.category || "")}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   onClick={() => recordTemplateView(tpl.id)}

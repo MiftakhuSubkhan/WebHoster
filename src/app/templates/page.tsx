@@ -395,15 +395,8 @@ export default function AllTemplatesPage() {
 
   const handleOpenDemo = (t: TemplateItem) => {
     recordTemplateView(t.id);
-    const rawUrl = t.demoUrl?.trim();
-    if (rawUrl) {
-      const finalUrl = rawUrl.startsWith("http://") || rawUrl.startsWith("https://")
-        ? rawUrl
-        : `https://${rawUrl}`;
-      window.open(finalUrl, "_blank", "noopener,noreferrer");
-    } else {
-      setSelectedDemo(t);
-    }
+    const targetUrl = `/templates/preview?id=${encodeURIComponent(t.id)}&name=${encodeURIComponent(t.title)}&url=${encodeURIComponent(t.demoUrl || "")}&cat=${encodeURIComponent(t.categoryLabel || "")}`;
+    window.open(targetUrl, "_blank", "noopener,noreferrer");
   };
 
   const handleSelectTemplate = (t: TemplateItem) => {
