@@ -22,182 +22,15 @@ import {
   FolderUp,
 } from "lucide-react";
 import { getTemplateViews, formatViewCount } from "@/lib/analytics";
+import {
+  TemplateCatalogItem as TemplateItem,
+  getTemplates,
+  saveTemplates as persistTemplates,
+  syncTemplatesWithSupabase,
+  DEFAULT_TEMPLATES_CATALOG as DEFAULT_TEMPLATES,
+} from "@/lib/templates";
 
-export interface TemplateItem {
-  id: string;
-  name: string;
-  category: string;
-  price?: string;
-  badge: string;
-  status: "Aktif" | "Draft";
-  features?: string[];
-  description?: string;
-  demoUrl?: string;
-  imageUrl?: string;
-}
 
-const DEFAULT_TEMPLATES: TemplateItem[] = [
-  {
-    id: "tpl-1",
-    name: "Apex Corporate NVMe",
-    category: "Company Profile",
-    badge: "Populer",
-    status: "Aktif",
-    features: [
-      "Listing Profil Perusahaan Modern",
-      "Performa NVMe Cloud Speed 99.9%",
-      "Elementor Pro Drag & Drop Ready",
-      "Integrasi Tombol WhatsApp Sales",
-    ],
-    description: "Template corporate modern dengan high-speed load & Elementor Pro.",
-    demoUrl: "https://demo.webhoster.co.id/apex",
-    imageUrl: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=600&auto=format&fit=crop&q=80",
-  },
-  {
-    id: "tpl-2",
-    name: "AutoElite Showroom & Garage",
-    category: "Otomotif",
-    badge: "Dealer Pro",
-    status: "Aktif",
-    features: [
-      "Katalog Showroom Mobil/Motor HD",
-      "Filter Tipe & Rentang Harga",
-      "Formulir Booking Test Drive WA",
-      "Tampilan 100% Responsif Mobile",
-    ],
-    description: "Katalog showroom mobil/motor interaktif, spesifikasi mesin & booking test drive WA.",
-    demoUrl: "https://demo.webhoster.co.id/autoelite",
-    imageUrl: "https://images.unsplash.com/photo-1486006920555-c77dce18193b?w=600&auto=format&fit=crop&q=80",
-  },
-  {
-    id: "tpl-3",
-    name: "Nusantara Corporate Pro",
-    category: "Company Profile",
-    badge: "Best Seller",
-    status: "Aktif",
-    features: [
-      "Struktur Standar Legalitas PT / CV",
-      "Halaman Visi Misi & Profil Tim",
-      "Skor Google PageSpeed 95+",
-      "Formulir Permintaan Penawaran B2B",
-    ],
-    description: "Desain elegan dan profesional untuk PT, CV, kontraktor & firma konsultan.",
-    demoUrl: "https://demo.webhoster.co.id/nusantara",
-    imageUrl: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=600&auto=format&fit=crop&q=80",
-  },
-  {
-    id: "tpl-4",
-    name: "Banyumili Store & Catalog",
-    category: "Toko Online",
-    badge: "Toko WA",
-    status: "Aktif",
-    features: [
-      "Katalog Produk & Galeri Foto",
-      "Filter Varian Warna & Ukuran",
-      "Checkout Langsung ke WhatsApp Admin",
-      "Bebas Biaya Potongan Gateway",
-    ],
-    description: "Toko online ringan katalog produk lengkap tanpa fee dengan checkout langsung ke WhatsApp.",
-    demoUrl: "https://demo.webhoster.co.id/store",
-    imageUrl: "https://images.unsplash.com/photo-1472851294608-062f824d29cc?w=600&auto=format&fit=crop&q=80",
-  },
-  {
-    id: "tpl-5",
-    name: "Kopi Senja Cafe & Eatery",
-    category: "F&B / Resto",
-    badge: "Trending",
-    status: "Aktif",
-    features: [
-      "Menu Digital Support QR Code",
-      "Galeri Suasana Resto & Cafe",
-      "Formulir Reservasi Meja Online",
-      "Peta Lokasi & Integrasi Google Maps",
-    ],
-    description: "Showcase visual estetik untuk coffee shop, resto, menu digital QR & reservasi meja.",
-    demoUrl: "https://demo.webhoster.co.id/coffee",
-    imageUrl: "https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=600&auto=format&fit=crop&q=80",
-  },
-  {
-    id: "tpl-6",
-    name: "Karya Abadi Tour & Rental",
-    category: "Travel & Tour",
-    badge: "Open Trip",
-    status: "Aktif",
-    features: [
-      "Display Paket Wisata & Trip",
-      "Galeri Armada Rental Mobil",
-      "Formulir Reservasi Jadwal Cepat",
-      "Integrasi WhatsApp Chat Sales",
-    ],
-    description: "Tata letak paket liburan, open trip, rental armada kendaraan & reservasi online.",
-    demoUrl: "https://demo.webhoster.co.id/travel",
-    imageUrl: "https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=600&auto=format&fit=crop&q=80",
-  },
-  {
-    id: "tpl-7",
-    name: "Grand Royal Residence & Property",
-    category: "Company Profile",
-    badge: "Real Estate",
-    status: "Aktif",
-    features: [
-      "Showcase Tipe Unit & Denah 3D",
-      "Download Brosur PDF Otomatis",
-      "Simulasi KPR & Estimasi Cicilan",
-      "Formulir Jadwal Survey Lokasi",
-    ],
-    description: "Website showcase perumahan cluster, denah rumah 3D & unduh brosur e-katalog.",
-    demoUrl: "https://demo.webhoster.co.id/grand-royal",
-    imageUrl: "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=600&auto=format&fit=crop&q=80",
-  },
-  {
-    id: "tpl-8",
-    name: "Explore Borneo Wild Adventure",
-    category: "Travel & Tour",
-    badge: "Adventure",
-    status: "Aktif",
-    features: [
-      "Jadwal Open Trip Realtime",
-      "Rincian Paket & Perlengkapan",
-      "Galeri Petualangan Wisatawan",
-      "Booking Online & Down Payment",
-    ],
-    description: "Portal paket wisata alam, ecotourism, dan open trip dengan booking online.",
-    demoUrl: "https://demo.webhoster.co.id/borneo",
-    imageUrl: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600&auto=format&fit=crop&q=80",
-  },
-  {
-    id: "tpl-9",
-    name: "Apex Motorsport & Tuning Hub",
-    category: "Otomotif",
-    badge: "Racing",
-    status: "Aktif",
-    features: [
-      "Paket Dyno & Servis Berkala",
-      "Katalog Suku Cadang & Oli",
-      "Booking Antrean Service WA",
-      "Galeri Modifikasi Portofolio",
-    ],
-    description: "Profil bengkel modern modifikasi mobil, dyno test, dan katalog aksesoris.",
-    demoUrl: "https://demo.webhoster.co.id/apex-moto",
-    imageUrl: "https://images.unsplash.com/photo-1486006920555-c77dce18193b?w=600&auto=format&fit=crop&q=80",
-  },
-  {
-    id: "tpl-10",
-    name: "Dapoer Nusantara Resto & Catering",
-    category: "F&B / Resto",
-    badge: "Catering Pro",
-    status: "Aktif",
-    features: [
-      "Paket Nasi Box & Prasmanan",
-      "Pilihan Menu Kustom Hajatan",
-      "Kalkulator Estimasi Porsi",
-      "Pemesanan Cepat via WhatsApp",
-    ],
-    description: "Katalog prasmanan catering pesta, nasi box kantor, dan pemesanan hajatan.",
-    demoUrl: "https://demo.webhoster.co.id/dapoer-nusantara",
-    imageUrl: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=600&auto=format&fit=crop&q=80",
-  },
-];
 
 const CATEGORIES = [
   "Semua",
@@ -242,29 +75,15 @@ export default function TemplatesManagementPage() {
   };
 
   useEffect(() => {
-    try {
-      const saved = localStorage.getItem("wh_templates_catalog");
-      if (saved !== null) {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed)) {
-          const normalized = parsed.map((item: TemplateItem) => {
-            let cat = item.category;
-            if (cat === "Kuliner / Cafe") cat = "F&B / Resto";
-            else if (cat === "Klinik & Kesehatan" || cat === "Startup & App" || cat === "Jasa Hukum") cat = "Company Profile";
-            return { ...item, category: cat };
-          });
-          setTemplates(normalized);
-        } else {
-          setTemplates(DEFAULT_TEMPLATES);
-          localStorage.setItem("wh_templates_catalog", JSON.stringify(DEFAULT_TEMPLATES));
-        }
-      } else {
-        setTemplates(DEFAULT_TEMPLATES);
-        localStorage.setItem("wh_templates_catalog", JSON.stringify(DEFAULT_TEMPLATES));
-      }
-    } catch (e) {
-      setTemplates(DEFAULT_TEMPLATES);
-    }
+    const sync = () => {
+      try {
+        setTemplates(getTemplates());
+      } catch (e) {}
+      setIsLoaded(true);
+    };
+
+    sync();
+    syncTemplatesWithSupabase().then(() => sync()).catch(() => {});
 
     const syncViews = () => {
       try {
@@ -276,30 +95,21 @@ export default function TemplatesManagementPage() {
 
     if (typeof window !== "undefined") {
       window.addEventListener("wh:template_viewed", syncViews);
-      window.addEventListener("storage", syncViews);
+      window.addEventListener("wh:templates_updated", sync);
+      window.addEventListener("storage", sync);
       return () => {
         window.removeEventListener("wh:template_viewed", syncViews);
-        window.removeEventListener("storage", syncViews);
+        window.removeEventListener("wh:templates_updated", sync);
+        window.removeEventListener("storage", sync);
       };
     }
-
-    setIsLoaded(true);
   }, []);
 
   const saveTemplates = (newTemplates: TemplateItem[]) => {
-    try {
-      localStorage.setItem("wh_templates_catalog", JSON.stringify(newTemplates));
-      setTemplates(newTemplates);
-      if (typeof window !== "undefined") {
-        window.dispatchEvent(new Event("wh:templates_updated"));
-      }
-    } catch (e: any) {
-      console.error("Gagal menyimpan ke localStorage:", e);
-      alert(
-        "Penyimpanan browser penuh! Gambar yang diunggah mungkin terlalu besar. Coba gunakan gambar dengan resolusi lebih kecil atau gunakan URL gambar eksternal."
-      );
-    }
+    setTemplates(newTemplates);
+    persistTemplates(newTemplates);
   };
+
 
   const handleResetDefaults = () => {
     if (confirm("Reset katalog kembali ke 6 template bawaan default dengan gambar?")) {

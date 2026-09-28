@@ -20,7 +20,8 @@ import {
   Flame,
 } from "lucide-react";
 import { getTemplateViews, formatViewCount } from "@/lib/analytics";
-import { getLeads, saveLeads, LeadItem } from "@/lib/leads";
+import { getLeads, saveLeads, LeadItem, syncLeadsWithSupabase } from "@/lib/leads";
+import { getTemplates, syncTemplatesWithSupabase } from "@/lib/templates";
 
 const TEMPLATE_STATS = [
   {
@@ -65,17 +66,16 @@ export default function WhPanelOverviewPage() {
       } catch (e) { }
     };
 
-    syncLeads();
+    const syncTemplates = () => {
+      try {
+        setTemplateList(getTemplates());
+      } catch (e) { }
+    };
 
-    try {
-      const saved = localStorage.getItem("wh_templates_catalog");
-      if (saved !== null) {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed)) {
-          setTemplateList(parsed);
-        }
-      }
-    } catch (e) { }
+    syncLeads();
+    syncTemplates();
+    syncLeadsWithSupabase().then(() => syncLeads()).catch(() => {});
+    syncTemplatesWithSupabase().then(() => syncTemplates()).catch(() => {});
 
     const syncViews = () => {
       try {
@@ -87,13 +87,17 @@ export default function WhPanelOverviewPage() {
 
     if (typeof window !== "undefined") {
       window.addEventListener("wh:leads_updated", syncLeads);
+      window.addEventListener("wh:templates_updated", syncTemplates);
       window.addEventListener("wh:template_viewed", syncViews);
       window.addEventListener("storage", syncLeads);
+      window.addEventListener("storage", syncTemplates);
       window.addEventListener("storage", syncViews);
       return () => {
         window.removeEventListener("wh:leads_updated", syncLeads);
+        window.removeEventListener("wh:templates_updated", syncTemplates);
         window.removeEventListener("wh:template_viewed", syncViews);
         window.removeEventListener("storage", syncLeads);
+        window.removeEventListener("storage", syncTemplates);
         window.removeEventListener("storage", syncViews);
       };
     }

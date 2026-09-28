@@ -26,6 +26,7 @@ import {
   Search,
 } from "lucide-react";
 import { recordTemplateView } from "@/lib/analytics";
+import { getTemplates, syncTemplatesWithSupabase } from "@/lib/templates";
 
 function WhatsAppIcon({
   className = "w-5 h-5",
@@ -490,7 +491,7 @@ export default function LayananTemplateCatalogPage() {
   const [agreedTerms, setAgreedTerms] = useState<{ [planId: string]: boolean }>({});
   const [termsError, setTermsError] = useState<string | null>(null);
   const [activeLegalModal, setActiveLegalModal] = useState<"terms" | "service" | "privacy" | null>(null);
-  const [templates, setTemplates] = useState<TemplateItem[]>(DEFAULT_TEMPLATES);
+  const [templates, setTemplates] = useState<TemplateItem[]>([]);
   const [pricingPlans, setPricingPlans] = useState<PricingPlan[]>(DEFAULT_PRICING_PLANS);
 
   useEffect(() => {
@@ -522,65 +523,62 @@ export default function LayananTemplateCatalogPage() {
   useEffect(() => {
     const syncTemplates = () => {
       try {
-        const saved = localStorage.getItem("wh_templates_catalog");
-        if (saved !== null) {
-          const parsed = JSON.parse(saved);
-          if (Array.isArray(parsed) && parsed.length > 0) {
-            const mapped: TemplateItem[] = parsed.map((t: any) => {
-              const rawCat = (t.category || "Company Profile").toLowerCase();
-              let catKey = "company";
-              let gradientTheme = "from-emerald-600/30 via-slate-900 to-[#0F141C]";
-              let accentColor = "#00E599";
+        const raw = getTemplates();
+        const activeOnly = raw.filter((t) => t.status !== "Draft");
+        const mapped: TemplateItem[] = activeOnly.map((t: any) => {
+          const rawCat = (t.category || "Company Profile").toLowerCase();
+          let catKey = "company";
+          let gradientTheme = "from-emerald-600/30 via-slate-900 to-[#0F141C]";
+          let accentColor = "#00E599";
 
-              if (rawCat.includes("auto") || rawCat.includes("mobil") || rawCat.includes("motor") || rawCat.includes("otomotif")) {
-                catKey = "automotive";
-                gradientTheme = "from-blue-600/30 via-slate-900 to-[#0F141C]";
-                accentColor = "#3B82F6";
-              } else if (rawCat.includes("toko") || rawCat.includes("shop") || rawCat.includes("commerce")) {
-                catKey = "ecommerce";
-                gradientTheme = "from-amber-600/30 via-slate-900 to-[#0F141C]";
-                accentColor = "#F59E0B";
-              } else if (rawCat.includes("tour") || rawCat.includes("travel") || rawCat.includes("rental")) {
-                catKey = "travel";
-                gradientTheme = "from-cyan-600/30 via-slate-900 to-[#0F141C]";
-                accentColor = "#06B6D4";
-              } else if (rawCat.includes("resto") || rawCat.includes("cafe") || rawCat.includes("kuliner") || rawCat.includes("f&b")) {
-                catKey = "fnb";
-                gradientTheme = "from-orange-600/30 via-slate-900 to-[#0F141C]";
-                accentColor = "#F97316";
-              }
-
-              return {
-                id: t.id,
-                title: t.name,
-                category: catKey,
-                categoryLabel: t.category || "General",
-                badge: t.badge || "Populer",
-                desc: t.description || "Website profesional siap pakai dengan performa tinggi & Elementor Builder.",
-                cms: "WordPress + Elementor Pro",
-                features: Array.isArray(t.features) && t.features.length > 0
-                  ? t.features
-                  : [
-                    "Elementor Pro Drag & Drop Ready",
-                    "100% Responsif di Smartphone & PC",
-                    "Integrasi WhatsApp CS Otomatis",
-                    "Optimasi SEO Google PageSpeed 95+",
-                  ],
-                gradientTheme,
-                accentColor,
-                slug: t.id,
-                imageUrl: t.imageUrl,
-                price: t.price,
-                demoUrl: t.demoUrl,
-              };
-            });
-            setTemplates(mapped);
+          if (rawCat.includes("auto") || rawCat.includes("mobil") || rawCat.includes("motor") || rawCat.includes("otomotif")) {
+            catKey = "automotive";
+            gradientTheme = "from-blue-600/30 via-slate-900 to-[#0F141C]";
+            accentColor = "#3B82F6";
+          } else if (rawCat.includes("toko") || rawCat.includes("shop") || rawCat.includes("commerce")) {
+            catKey = "ecommerce";
+            gradientTheme = "from-amber-600/30 via-slate-900 to-[#0F141C]";
+            accentColor = "#F59E0B";
+          } else if (rawCat.includes("tour") || rawCat.includes("travel") || rawCat.includes("rental")) {
+            catKey = "travel";
+            gradientTheme = "from-cyan-600/30 via-slate-900 to-[#0F141C]";
+            accentColor = "#06B6D4";
+          } else if (rawCat.includes("resto") || rawCat.includes("cafe") || rawCat.includes("kuliner") || rawCat.includes("f&b")) {
+            catKey = "fnb";
+            gradientTheme = "from-orange-600/30 via-slate-900 to-[#0F141C]";
+            accentColor = "#F97316";
           }
-        }
+
+          return {
+            id: t.id,
+            title: t.name,
+            category: catKey,
+            categoryLabel: t.category || "General",
+            badge: t.badge || "Populer",
+            desc: t.description || "Website profesional siap pakai dengan performa tinggi & Elementor Builder.",
+            cms: "WordPress + Elementor Pro",
+            features: Array.isArray(t.features) && t.features.length > 0
+              ? t.features
+              : [
+                "Elementor Pro Drag & Drop Ready",
+                "100% Responsif di Smartphone & PC",
+                "Integrasi WhatsApp CS Otomatis",
+                "Optimasi SEO Google PageSpeed 95+",
+              ],
+            gradientTheme,
+            accentColor,
+            slug: t.id,
+            imageUrl: t.imageUrl,
+            price: t.price,
+            demoUrl: t.demoUrl,
+          };
+        });
+        setTemplates(mapped);
       } catch (e) { }
     };
 
     syncTemplates();
+    syncTemplatesWithSupabase().then(() => syncTemplates()).catch(() => {});
 
     if (typeof window !== "undefined") {
       window.addEventListener("storage", syncTemplates);
@@ -853,20 +851,36 @@ export default function LayananTemplateCatalogPage() {
               <div className="w-14 h-14 rounded-2xl bg-[#121824] border border-[#1B2433] flex items-center justify-center text-[#64748B] mx-auto mb-4">
                 <Search className="w-7 h-7" />
               </div>
-              <h3 className="text-lg font-black text-white mb-1.5">Template Tidak Ditemukan</h3>
+              <h3 className="text-lg font-black text-white mb-1.5">
+                {searchTerm ? "Template Tidak Ditemukan" : "Katalog Desain Template"}
+              </h3>
               <p className="text-xs text-[#94A3B8] mb-6 leading-relaxed">
-                Tidak ada template yang cocok dengan kata kunci &ldquo;<span className="text-white font-semibold">{searchTerm}</span>&rdquo; pada kategori terpilih.
+                {searchTerm
+                  ? `Tidak ada template yang cocok dengan kata kunci "${searchTerm}" pada kategori terpilih.`
+                  : "Saat ini belum ada template aktif yang dipublikasikan. Anda tetap dapat langsung memilih paket pembuatan website di bawah."}
               </p>
-              <button
-                onClick={() => {
-                  setSearchTerm("");
-                  setActiveCategory("all");
-                  setVisibleCount(6);
-                }}
-                className="bg-[#00E599] text-[#090C10] font-black text-xs px-6 py-3 rounded-xl hover:bg-[#00C882] shadow-[0_0_20px_rgba(0,229,153,0.35)] transition cursor-pointer"
-              >
-                Reset Filter &amp; Tampilkan Semua
-              </button>
+              {searchTerm ? (
+                <button
+                  onClick={() => {
+                    setSearchTerm("");
+                    setActiveCategory("all");
+                    setVisibleCount(6);
+                  }}
+                  className="bg-[#00E599] text-[#090C10] font-black text-xs px-6 py-3 rounded-xl hover:bg-[#00C882] shadow-[0_0_20px_rgba(0,229,153,0.35)] transition cursor-pointer"
+                >
+                  Reset Filter &amp; Tampilkan Semua
+                </button>
+              ) : (
+                <button
+                  onClick={() => {
+                    const el = document.getElementById("paket-harga");
+                    el?.scrollIntoView({ behavior: "smooth" });
+                  }}
+                  className="inline-flex items-center gap-2 bg-[#00E599] text-[#090C10] font-black text-xs px-6 py-3 rounded-xl hover:bg-[#00C882] shadow-[0_0_20px_rgba(0,229,153,0.35)] transition cursor-pointer"
+                >
+                  <span>Lihat Paket Harga di Bawah ↓</span>
+                </button>
+              )}
             </div>
           ) : (
             <>

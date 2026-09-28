@@ -3,6 +3,8 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { recordTemplateView } from "@/lib/analytics";
+import { getTemplates, syncTemplatesWithSupabase } from "@/lib/templates";
+
 function ArrowUpRight({ className = "w-4 h-4" }: { className?: string }) {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -33,66 +35,37 @@ export interface PortfolioItem {
   demoUrl?: string;
 }
 
-const DEFAULT_HOME_TEMPLATES: PortfolioItem[] = [
-  {
-    id: "tpl-1",
-    name: "Apex Corporate NVMe",
-    category: "Company Profile",
-    badge: "Populer",
-    description: "Website profil korporat modern dengan arsitektur multi-layer, animasi interaktif, dan performa tinggi.",
-    imageUrl: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=380&auto=format&fit=crop&q=70",
-  },
-  {
-    id: "tpl-2",
-    name: "AutoElite Showroom & Garage",
-    category: "Otomotif",
-    badge: "Dealer Pro",
-    description: "Katalog showroom mobil & motor interaktif, rincian spesifikasi mesin, dan booking test drive WhatsApp.",
-    imageUrl: "https://images.unsplash.com/photo-1486006920555-c77dce18193b?w=380&auto=format&fit=crop&q=70",
-  },
-  {
-    id: "tpl-3",
-    name: "Nusantara Corporate Pro",
-    category: "Company Profile",
-    badge: "Best Seller",
-    description: "Desain elegan dan profesional untuk PT, CV, kontraktor & firma konsultan terpercaya.",
-    imageUrl: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=380&auto=format&fit=crop&q=70",
-  },
-  {
-    id: "tpl-4",
-    name: "Banyumili Store & Catalog",
-    category: "Toko Online",
-    badge: "Toko WA",
-    description: "Toko online ringan katalog produk lengkap tanpa fee dengan checkout langsung ke WhatsApp admin.",
-    imageUrl: "https://images.unsplash.com/photo-1472851294608-062f824d29cc?w=380&auto=format&fit=crop&q=70",
-  },
-];
-
 export default function HomePortfolioGrid() {
-  const [items, setItems] = useState<PortfolioItem[]>(DEFAULT_HOME_TEMPLATES);
+  const [items, setItems] = useState<PortfolioItem[]>([]);
 
   useEffect(() => {
     const syncTemplates = () => {
       try {
-        const saved = localStorage.getItem("wh_templates_catalog");
-        if (saved !== null) {
-          const parsed = JSON.parse(saved);
-          if (Array.isArray(parsed) && parsed.length > 0) {
-            const mapped = parsed.map((t: any) => {
-              let cat = t.category;
-              if (cat === "Kuliner / Cafe") cat = "F&B / Resto";
-              else if (cat === "Klinik & Kesehatan" || cat === "Startup & App" || cat === "Jasa Hukum") cat = "Company Profile";
-              return { ...t, category: cat };
-            });
-            setItems(mapped);
-            return;
-          }
-        }
-      } catch (e) { }
-      setItems(DEFAULT_HOME_TEMPLATES);
+        const raw = getTemplates();
+        const activeOnly = raw.filter((t) => t.status !== "Draft");
+        const mapped: PortfolioItem[] = activeOnly.map((t: any) => {
+          let cat = t.category || "Company Profile";
+          if (cat === "Kuliner / Cafe") cat = "F&B / Resto";
+          else if (cat === "Klinik & Kesehatan" || cat === "Startup & App" || cat === "Jasa Hukum") cat = "Company Profile";
+          return {
+            id: t.id,
+            name: t.name,
+            category: cat,
+            badge: t.badge || "Siap Pakai",
+            description: t.description || "Template WordPress profesional siap pakai dengan performa cepat.",
+            imageUrl: t.imageUrl,
+            demoUrl: t.demoUrl,
+            price: t.price,
+          };
+        });
+        setItems(mapped);
+      } catch (e) {
+        setItems([]);
+      }
     };
 
     syncTemplates();
+    syncTemplatesWithSupabase().then(() => syncTemplates()).catch(() => {});
 
     if (typeof window !== "undefined") {
       window.addEventListener("storage", syncTemplates);
@@ -103,6 +76,27 @@ export default function HomePortfolioGrid() {
       };
     }
   }, []);
+
+  if (items.length === 0) {
+    return (
+      <div className="text-center py-12 px-6 rounded-3xl bg-[#0F141C] border border-[#1B2433] max-w-xl mx-auto">
+        <div className="w-12 h-12 rounded-2xl bg-[#00E599]/10 border border-[#00E599]/20 flex items-center justify-center text-[#00E599] mx-auto mb-4">
+          <ImageIcon className="w-6 h-6" />
+        </div>
+        <h4 className="text-lg font-bold text-white mb-2">Katalog Desain Template</h4>
+        <p className="text-xs text-[#94A3B8] mb-6 leading-relaxed">
+          Belum ada template aktif yang ditampilkan di katalog. Anda dapat langsung memilih paket pembuatan website atau memesan desain kustom via WhatsApp.
+        </p>
+        <Link
+          href="/harga#paket-harga"
+          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#00E599] text-[#090C10] font-bold text-xs hover:bg-[#00C882] transition shadow-[0_0_20px_rgba(0,229,153,0.3)]"
+        >
+          <span>Pilih Paket Website</span>
+          <ArrowUpRight className="w-4 h-4" />
+        </Link>
+      </div>
+    );
+  }
 
   const gridColsClass =
     items.length === 2
