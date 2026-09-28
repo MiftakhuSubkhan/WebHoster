@@ -7,8 +7,8 @@ import { usePathname } from "next/navigation";
 export default function Footer() {
   const pathname = usePathname();
 
-  // Hide public footer on admin workspace panel
-  if (pathname?.startsWith("/wh-panel")) {
+  // Hide public footer on admin workspace panel or template live preview
+  if (pathname?.startsWith("/wh-panel") || pathname?.startsWith("/templates/preview")) {
     return null;
   }
 

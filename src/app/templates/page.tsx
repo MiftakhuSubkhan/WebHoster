@@ -400,7 +400,8 @@ export default function AllTemplatesPage() {
       const finalUrl = rawUrl.startsWith("http://") || rawUrl.startsWith("https://")
         ? rawUrl
         : `https://${rawUrl}`;
-      window.open(finalUrl, "_blank", "noopener,noreferrer");
+      const previewUrl = `/templates/preview?url=${encodeURIComponent(finalUrl)}&title=${encodeURIComponent(t.title)}&category=${encodeURIComponent(t.categoryLabel || "")}&price=${encodeURIComponent(t.price || "")}&id=${encodeURIComponent(t.id)}`;
+      window.open(previewUrl, "_blank", "noopener,noreferrer");
     } else {
       setSelectedDemo(t);
     }

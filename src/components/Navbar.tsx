@@ -60,8 +60,8 @@ export default function Navbar({
   const [announcementVisible, setAnnouncementVisible] = useState(showAnnouncement);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  // Do not render public navbar inside the admin dashboard panel
-  if (pathname?.startsWith("/wh-panel")) {
+  // Do not render public navbar inside the admin dashboard panel or template live preview
+  if (pathname?.startsWith("/wh-panel") || pathname?.startsWith("/templates/preview")) {
     return null;
   }
 

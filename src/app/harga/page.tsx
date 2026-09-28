@@ -635,7 +635,8 @@ export default function LayananTemplateCatalogPage() {
       const finalUrl = rawUrl.startsWith("http://") || rawUrl.startsWith("https://")
         ? rawUrl
         : `https://${rawUrl}`;
-      window.open(finalUrl, "_blank", "noopener,noreferrer");
+      const previewUrl = `/templates/preview?url=${encodeURIComponent(finalUrl)}&title=${encodeURIComponent(template.title)}&category=${encodeURIComponent(template.categoryLabel || "")}&price=${encodeURIComponent(template.price || "")}&id=${encodeURIComponent(template.id)}`;
+      window.open(previewUrl, "_blank", "noopener,noreferrer");
     } else {
       setSelectedDemo(template);
     }
